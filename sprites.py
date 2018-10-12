@@ -38,4 +38,11 @@ class Player(pg.sprite.Sprite):
         self.acc += self.vel * PLAYER_FRICTION
         self.vel += self.acc #for additional movement. Notice that it is missing time from physics
         self.pos += self.vel + 0.5 * self.acc #for additional movement Notice that it is missing time from physics
+		
+        #little bit weird i dont know how i feel about this
+        if self.pos.x - 15 > WIDTH:
+            self.pos.x = 0
+        if self.pos.x + 15 < 0:
+            self.pos.x = WIDTH
+
         self.rect.center = self.pos
