@@ -13,14 +13,16 @@ class Game:
         self.screen = pg.display.set_mode((WIDTH,HEIGHT))
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
+        self.font_name = pg.font.match_font(FONT_NAME)
         self.running = True
 
     def new(self):
         self.all_sprites = pg.sprite.Group()
         self.all_platforms = pg.sprite.Group()
         self.player = Player(30,GREEN) #experimenting giving game class to player
+        self.score = 0
         self.all_sprites.add(self.player)
-        
+
         for platform in PLATFORM_LIST:
             p = Platform(platform[0],platform[1],platform[2],platform[3], platform[4])
             self.all_sprites.add(p)
@@ -50,18 +52,71 @@ class Game:
 
     def update(self):
         self.all_sprites.update()
-        #check if player hits a Platform - only if falling
+        #check if player hits a platform - only if falling
         if self.player.vel.y > 0:
             hits = pg.sprite.spritecollide(self.player, self.all_platforms, False)
             if hits:
                 self.player.pos.y = hits[0].rect.top + 1
                 self.player.vel.y = 0
+        #check if player reaches top 1/4 of the screen
+        if self.player.rect.top <= HEIGHT/4:
+            self.player.pos.y += abs(self.player.vel.y)
+            for plat in self.all_platforms:
+                plat.rect.y += abs(self.player.vel.y)
+                if plat.rect.top >= HEIGHT:
+                    plat.kill()
+                    self.score += random.randrange(10,20)
+        '''
+        #for testing purposes.To see whether the platform is deleted or not
+        if self.player.rect.top >= HEIGHT * 3/4:
+            self.player.pos.y -= abs(self.player.vel.y)
+            for plat in self.all_platforms:
+                plat.rect.y -= abs(self.player.vel.y)
+        '''
+        #game over for falling
+        if self.player.rect.bottom > HEIGHT:
+            for sprite in self.all_sprites:
+                sprite.rect.y -= max(self.player.vel.y,10)
+                if sprite.rect.bottom < 0:
+                    sprite.kill()
+        if len(self.all_platforms) == 0:
+            self.playing = False
+        '''
+        #for left x axis
+        if self.player.rect.right <= WIDTH * 1/4:
+            self.player.pos.x += abs(self.player.vel.x)
+            for plat in self.all_platforms:
+                plat.rect.x += abs(self.player.vel.x)
+        #for right x axis
+        if self.player.rect.right >= WIDTH * 3/4:
+            self.player.pos.x -= abs(self.player.vel.x)
+            for plat in self.all_platforms:
+                plat.rect.x -= abs(self.player.vel.x)
+        '''
+        #spawning new platforms
+        while len(self.all_platforms) < 7:
+            #work on platform count and find a better algorithm solution for generation of platforms
+            width = random.randrange(50,100)
+            p = Platform(random.randrange(0,WIDTH-width),
+                        random.randrange(-75,-30),
+                        width,
+                        20,PINK)
+            self.all_sprites.add(p)
+            self.all_platforms.add(p)
+
 
     def draw(self):
-        self.screen.fill(BLUE)
+        self.screen.fill(GREY)
         self.all_sprites.draw(self.screen)
+        self.draw_text(str(self.score),WIDTH/2,5,30,YELLOW)
         pg.display.flip()
-        pass
+
+    def draw_text(self,text,x,y,size,color):
+        font = pg.font.Font(self.font_name,size)
+        text_surface  = font.render(text,True,color)
+        text_rect = text_surface.get_rect()
+        text_rect.midtop = (x,y)
+        self.screen.blit(text_surface,text_rect)
 
     def show_start_screen(self):
         #start start
