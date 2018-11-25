@@ -19,18 +19,20 @@ class Game:
 
     def load_data(self):
         self.dir = path.dirname(__file__)
-        with open(path.join(self.dir, HIGHSCORE_FILE), 'r+') as f:
+        img_dir = path.join(self.dir , 'img' )
+        with open(path.join(self.dir, HIGHSCORE_FILE), 'r+') as f: # there is a major bug here if file doesn't exist it crashes
             try:
                 self.highscore = int(f.read())
             except:
                 self.highscore = 0
                 print("console error")
             # f.close()
+        self.spritesheet = Spritesheet(path.join(img_dir,SPRITESHEET))
 
     def new(self):
         self.all_sprites = pg.sprite.Group()
         self.all_platforms = pg.sprite.Group()
-        self.player = Player(30,GREEN) # experimenting giving game class to player
+        self.player = Player(30,GREEN,self.spritesheet) # experimenting giving game class to player
         self.score = 0
         self.all_sprites.add(self.player) # add the another player which is online
 
@@ -60,6 +62,7 @@ class Game:
                 hits = pg.sprite.spritecollide(self.player,self.all_platforms,False)
                 if event.key == pg.K_SPACE and hits:
                     self.player.jump()
+
 
     def update(self):
         self.all_sprites.update()
