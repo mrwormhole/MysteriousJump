@@ -32,7 +32,7 @@ class Game:
     def new(self):
         self.all_sprites = pg.sprite.Group()
         self.all_platforms = pg.sprite.Group()
-        self.player = Player(30,GREEN,self.spritesheet) # experimenting giving game class to player
+        self.player = Player(30,GREEN,self.spritesheet) # size and color are obsolute now i know because i have just added sprite
         self.score = 0
         self.all_sprites.add(self.player) # add the another player which is online
 
