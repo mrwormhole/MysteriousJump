@@ -5,6 +5,7 @@ FPS = 30
 FONT_NAME = "arial"
 HIGHSCORE_FILE = "highscore.txt"
 SPRITESHEET = "spritesheet.png"
+GRASS_TILE = "grass_tile.png"
 GREY = (128, 128, 128)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -18,10 +19,10 @@ PLAYER_ACCELERATION = 0.50 # it was 0.25
 PLAYER_FRICTION = -0.1
 PLAYER_GRAVITY = 0.5
 PLAYER_JUMP_SPEED = 18 # it was 12
-PLATFORM_LIST = [ (0, HEIGHT-40, WIDTH, 40, PINK), # base ground
-                  (WIDTH/2-50, HEIGHT*3/4, 100, 20, PINK), # 450
-                  (200, HEIGHT*2/4+50, 100, 20, PINK), # 350
-                  (350, HEIGHT*2/4-50, 100, 20, PINK), # 250
-                  (200, HEIGHT*1/4, 100, 20, PINK), # 150
-                  (350, HEIGHT*1/4-100, 100, 20, PINK), # 50
-                  (200, HEIGHT*1/4-200, 100, 20, PINK) ] # -50
+PLATFORM_LIST = [ (0, HEIGHT-40, WIDTH, 40, "grass_tile"), # base ground
+                  (WIDTH/2-50, HEIGHT*3/4, 100, 20, "grass_tile"), # 450
+                  (200, HEIGHT*2/4+50, 100, 20, "grass_tile"), # 350
+                  (350, HEIGHT*2/4-50, 100, 20, "grass_tile"), # 250
+                  (200, HEIGHT*1/4, 100, 20, "grass_tile"), # 150
+                  (350, HEIGHT*1/4-100, 100, 20, "grass_tile"), # 50
+                  (200, HEIGHT*1/4-200, 100, 20, "grass_tile") ] # -50

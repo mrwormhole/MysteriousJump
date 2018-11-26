@@ -19,25 +19,25 @@ class Game:
 
     def load_data(self):
         self.dir = path.dirname(__file__)
-        img_dir = path.join(self.dir , 'img' )
-        with open(path.join(self.dir, HIGHSCORE_FILE), 'r+') as f: # there is a major bug here if file doesn't exist it crashes
+        self.img_dir = path.join(self.dir , 'img' )
+        with open(path.join(self.dir, HIGHSCORE_FILE), 'r+') as f:
             try:
                 self.highscore = int(f.read())
             except:
                 self.highscore = 0
                 print("console error")
             # f.close()
-        self.spritesheet = Spritesheet(path.join(img_dir,SPRITESHEET))
+        self.spritesheet = Spritesheet(path.join(self.img_dir,SPRITESHEET))
 
     def new(self):
         self.all_sprites = pg.sprite.Group()
         self.all_platforms = pg.sprite.Group()
-        self.player = Player(30,GREEN,self.spritesheet) # size and color are obsolute now i know because i have just added sprite
+        self.player = Player(self.spritesheet)
         self.score = 0
-        self.all_sprites.add(self.player) # add the another player which is online
+        self.all_sprites.add(self.player)
 
         for platform in PLATFORM_LIST:
-            p = Platform(platform[0],platform[1],platform[2],platform[3], platform[4])
+            p = Platform(platform[0],platform[1],platform[2],platform[3], path.join(self.img_dir,GRASS_TILE))
             self.all_sprites.add(p)
             self.all_platforms.add(p)
 
@@ -60,8 +60,15 @@ class Game:
                 self.running = False
             if event.type == pg.KEYDOWN:
                 hits = pg.sprite.spritecollide(self.player,self.all_platforms,False)
+                if hits:
+                    self.player.walking = True
+                    self.player.jumping = False
                 if event.key == pg.K_SPACE and hits:
                     self.player.jump()
+                    self.player.walking = False
+                    self.player.jumping = True
+
+
 
 
     def update(self):
@@ -114,7 +121,7 @@ class Game:
             p = Platform(random.randrange(0, WIDTH-width),
                          random.randrange(-75, -30),
                          width,
-                         20, PINK)
+                         20, path.join(self.img_dir,GRASS_TILE))
             self.all_sprites.add(p)
             self.all_platforms.add(p)
 
