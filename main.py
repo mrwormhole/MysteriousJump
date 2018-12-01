@@ -20,6 +20,7 @@ class Game:
     def load_data(self):
         self.dir = path.dirname(__file__)
         self.img_dir = path.join(self.dir , 'img' )
+        self.sound_dir = path.join(self.dir, 'sound')
         with open(path.join(self.dir, HIGHSCORE_FILE), 'r+') as f:
             try:
                 self.highscore = int(f.read())
@@ -28,6 +29,7 @@ class Game:
                 print("console error")
             # f.close()
         self.spritesheet = Spritesheet(path.join(self.img_dir,SPRITESHEET))
+        self.jump_sound = pg.mixer.Sound(path.join(self.sound_dir,JUMP_SOUND))
 
     def new(self):
         self.all_sprites = pg.sprite.Group()
@@ -40,17 +42,18 @@ class Game:
             p = Platform(platform[0],platform[1], path.join(self.img_dir,GRASS_TILE),path.join(self.img_dir,STONE_TILE),self.player.now)
             self.all_sprites.add(p)
             self.all_platforms.add(p)
-
+        pg.mixer.music.load(path.join(self.sound_dir, THEME_MUSIC))
         self.run()
 
     def run(self):
         self.playing = True
+        pg.mixer.music.play(loops=-1)
         while self.playing:
             self.clock.tick(FPS)
             self.events()
             self.update()
             self.draw()
-        pass
+        pg.mixer.stop()
 
     def events(self):
         for event in pg.event.get():
@@ -65,6 +68,7 @@ class Game:
                     self.player.jumping = False
                 if event.key == pg.K_SPACE and hits:
                     self.player.jump()
+                    self.jump_sound.play()
                     self.player.walking = False
                     self.player.jumping = True
 
@@ -78,8 +82,13 @@ class Game:
         if self.player.vel.y > 0:
             hits = pg.sprite.spritecollide(self.player, self.all_platforms, False)
             if hits:
-                self.player.pos.y = hits[0].rect.top + 1
-                self.player.vel.y = 0
+                lowest = hits[0]
+                for hit in hits:
+                    if hit.rect.bottom > lowest.rect.bottom:
+                        lowest = hit
+                if self.player.pos.y < lowest.rect.centery:
+                    self.player.pos.y = lowest.rect.top + 1
+                    self.player.vel.y = 0
 
         # check if player reaches top 1/4 of the screen
         if self.player.rect.top <= HEIGHT/4:
@@ -133,6 +142,8 @@ class Game:
                     waiting = False
 
     def show_start_screen(self):
+        pg.mixer.music.load(path.join(self.sound_dir, MENU_MUSIC))
+        pg.mixer.music.play(loops =-1)
         self.screen.fill(GREY)
         self.draw_text(TITLE, WIDTH/2, HEIGHT/4, 48, WHITE)
         self.draw_text("A and D to move, Space to jump", WIDTH/2, HEIGHT/2, 22, WHITE)
