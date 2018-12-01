@@ -37,7 +37,7 @@ class Game:
         self.all_sprites.add(self.player)
 
         for platform in PLATFORM_LIST:
-            p = Platform(platform[0],platform[1],platform[2],platform[3], path.join(self.img_dir,GRASS_TILE))
+            p = Platform(platform[0],platform[1], path.join(self.img_dir,GRASS_TILE),path.join(self.img_dir,STONE_TILE),self.player.now)
             self.all_sprites.add(p)
             self.all_platforms.add(p)
 
@@ -73,27 +73,23 @@ class Game:
 
     def update(self):
         self.all_sprites.update()
+
         # check if player hits a platform - only if falling
         if self.player.vel.y > 0:
             hits = pg.sprite.spritecollide(self.player, self.all_platforms, False)
             if hits:
                 self.player.pos.y = hits[0].rect.top + 1
                 self.player.vel.y = 0
+
         # check if player reaches top 1/4 of the screen
         if self.player.rect.top <= HEIGHT/4:
-            self.player.pos.y += abs(self.player.vel.y)
+            self.player.pos.y += max(abs(self.player.vel.y), 2)
             for plat in self.all_platforms:
                 plat.rect.y += abs(self.player.vel.y)
                 if plat.rect.top >= HEIGHT:
                     plat.kill()
                     self.score += random.randrange(10, 20)
-        '''
-        #for testing purposes.To see whether the platform is deleted or not
-        if self.player.rect.top >= HEIGHT * 3/4:
-            self.player.pos.y -= abs(self.player.vel.y)
-            for plat in self.all_platforms:
-                plat.rect.y -= abs(self.player.vel.y)
-        '''
+
         # game over for falling
         if self.player.rect.bottom > HEIGHT:
             for sprite in self.all_sprites:
@@ -102,32 +98,19 @@ class Game:
                     sprite.kill()
         if len(self.all_platforms) == 0:
             self.playing = False
-        '''
-        #for left x axis
-        if self.player.rect.right <= WIDTH * 1/4:
-            self.player.pos.x += abs(self.player.vel.x)
-            for plat in self.all_platforms:
-                plat.rect.x += abs(self.player.vel.x)
-        #for right x axis
-        if self.player.rect.right >= WIDTH * 3/4:
-            self.player.pos.x -= abs(self.player.vel.x)
-            for plat in self.all_platforms:
-                plat.rect.x -= abs(self.player.vel.x)
-        '''
+
         # spawning new platforms
         while len(self.all_platforms) < 7:
-            # work on platform count and find a better algorithm solution for generation of platforms
-            width = random.randrange(50, 100)
-            p = Platform(random.randrange(0, WIDTH-width),
+            p = Platform(random.randrange(0, WIDTH-random.randrange(50,100)),
                          random.randrange(-75, -30),
-                         width,
-                         20, path.join(self.img_dir,GRASS_TILE))
+                        path.join(self.img_dir,GRASS_TILE),path.join(self.img_dir,STONE_TILE),self.player.now)
             self.all_sprites.add(p)
             self.all_platforms.add(p)
 
     def draw(self):
         self.screen.fill(GREY)
         self.all_sprites.draw(self.screen)
+        self.screen.blit(self.player.image,self.player.rect)
         self.draw_text(str(self.score), WIDTH/2, 5, 30, YELLOW)
         pg.display.flip()
 

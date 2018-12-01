@@ -1,6 +1,7 @@
 import pygame as pg
 from settings import *
 vector2 = pg.math.Vector2
+import random
 
 
 class Spritesheet:
@@ -8,11 +9,9 @@ class Spritesheet:
         self.spritesheet = pg.image.load(filename).convert_alpha()
 
     def get_image(self,x,y,width,height):
-        # make sure you test the rect boxes and images
         image = pg.Surface((width,height),pg.SRCALPHA,32)
         image.blit(self.spritesheet, (0, 0), (x, y, width, height))
         image = pg.transform.scale(image,(55,52))
-        print(image.get_rect())
         return image
 
     def fill_animation_sprites(self):
@@ -40,9 +39,9 @@ class Player(pg.sprite.Sprite):
         self.pos = vector2(WIDTH /2, HEIGHT/2)
         self.vel = vector2(0, 0)
         self.acc = vector2(0, 0)
+        self.now = 0
 
     def jump(self):
-        # set jump speed to 15 and acceleration to 0.25 to see that bug on first platform
         self.vel.y -= PLAYER_JUMP_SPEED
 
     def update(self):
@@ -70,7 +69,7 @@ class Player(pg.sprite.Sprite):
         self.rect.midbottom = self.pos
 
     def animate(self):
-        now = pg.time.get_ticks()
+        self.now = pg.time.get_ticks()
 
         if abs(self.vel.x) < 0.5:
             self.vel.x = 0
@@ -79,8 +78,8 @@ class Player(pg.sprite.Sprite):
             self.walking = True
 
         if self.walking:
-            if now - self.last_update > 120:
-                self.last_update = now
+            if self.now - self.last_update > 120:
+                self.last_update = self.now
                 self.current_frame = (self.current_frame + 1) % 6
                 if self.vel.x > 0:
                     # walking right
@@ -95,10 +94,15 @@ class Player(pg.sprite.Sprite):
 
 
 class Platform(pg.sprite.Sprite):
-    def __init__(self, x, y, width, height, filename):
+    def __init__(self, x, y, filename1,filename2,time):
         pg.sprite.Sprite.__init__(self)
-        # self.grassTile = pg.image.load(filename).convert_alpha()
-        self.image = pg.image.load(filename).convert_alpha() # pg.Surface((width,height),pg.SRCALPHA,32)
+        print("Time: " + str(time))
+        self.platforms_images = [pg.image.load(filename1).convert_alpha(),pg.image.load(filename2).convert_alpha()]
+        self.image = self.platforms_images[random.randint(0, 1)]
+        self.xList = [75,100,125,150]
+        self.yList = [40,45,50]
+        self.image = pg.transform.scale(self.image, (self.xList[random.randint(0, 3)], self.yList[random.randint(0, 2)]))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+
