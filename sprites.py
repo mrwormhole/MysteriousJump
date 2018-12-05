@@ -2,6 +2,7 @@ import pygame as pg
 from settings import *
 vector2 = pg.math.Vector2
 import random
+from os import path
 
 
 class Spritesheet:
@@ -24,8 +25,9 @@ class Spritesheet:
 
 
 class Player(pg.sprite.Sprite):
-    def __init__(self,spritesheet):
-        pg.sprite.Sprite.__init__(self)
+    def __init__(self,spritesheet,game):
+        self.groups = game.all_sprites
+        pg.sprite.Sprite.__init__(self,self.groups)
         self.spritesheet = spritesheet
         self.spritesheet.fill_animation_sprites()
         self.walking = False
@@ -94,9 +96,11 @@ class Player(pg.sprite.Sprite):
 
 
 class Platform(pg.sprite.Sprite):
-    def __init__(self, x, y, filename1,filename2,time):
-        pg.sprite.Sprite.__init__(self)
+    def __init__(self, game,x, y, filename1,filename2,time):
+        self.groups = game.all_sprites, game.all_platforms
+        pg.sprite.Sprite.__init__(self, self.groups)
         print("Time: " + str(time))
+        self.game = game
         self.platforms_images = [pg.image.load(filename1).convert_alpha(),pg.image.load(filename2).convert_alpha()]
         self.image = self.platforms_images[random.randint(0, 1)]
         self.xList = [75,100,125,150]
@@ -105,4 +109,24 @@ class Platform(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        if random.randrange(100) < 10:
+            self.powerup = PowerUp(self.game,self)
+
+
+class PowerUp(pg.sprite.Sprite):
+    def __init__(self,game,platform):
+        self.groups = game.all_sprites, game.all_powerups
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.platform = platform
+        self.type = "boost"
+        self.image = pg.transform.scale(pg.image.load(path.join(self.game.img_dir,"powerup.png")),(40,40))
+        self.rect = self.image.get_rect()
+        self.rect.centerx = self.platform.rect.centerx
+        self.rect.bottom = self.platform.rect.top - 5
+
+    def update(self):
+        self.rect.bottom = self.platform.rect.top - 5
+        if not self.game.all_platforms.has(self.platform):
+            self.kill()
 

@@ -34,14 +34,14 @@ class Game:
     def new(self):
         self.all_sprites = pg.sprite.Group()
         self.all_platforms = pg.sprite.Group()
-        self.player = Player(self.spritesheet)
+        self.all_powerups = pg.sprite.Group()
+        self.player = Player(self.spritesheet,self)
         self.score = 0
-        self.all_sprites.add(self.player)
+
 
         for platform in PLATFORM_LIST:
-            p = Platform(platform[0],platform[1], path.join(self.img_dir,GRASS_TILE),path.join(self.img_dir,STONE_TILE),self.player.now)
-            self.all_sprites.add(p)
-            self.all_platforms.add(p)
+            Platform(self,platform[0],platform[1], path.join(self.img_dir,GRASS_TILE),path.join(self.img_dir,STONE_TILE),self.player.now)
+
         pg.mixer.music.load(path.join(self.sound_dir, THEME_MUSIC))
         self.run()
 
@@ -86,9 +86,10 @@ class Game:
                 for hit in hits:
                     if hit.rect.bottom > lowest.rect.bottom:
                         lowest = hit
-                if self.player.pos.y < lowest.rect.centery:
-                    self.player.pos.y = lowest.rect.top + 1
-                    self.player.vel.y = 0
+                if self.player.pos.x < lowest.rect.right + 10 and self.player.pos.x > lowest.rect.left - 10:
+                    if self.player.pos.y < lowest.rect.centery:
+                        self.player.pos.y = lowest.rect.top + 1
+                        self.player.vel.y = 0
 
         # check if player reaches top 1/4 of the screen
         if self.player.rect.top <= HEIGHT/4:
@@ -98,6 +99,13 @@ class Game:
                 if plat.rect.top >= HEIGHT:
                     plat.kill()
                     self.score += random.randrange(10, 20)
+
+        #if player picks a power up
+        powerup_hits = pg.sprite.spritecollide(self.player,self.all_powerups, True)
+        for powerup_hit in powerup_hits:
+            if powerup_hit.type == "boost":
+                self.player.vel.y = -BOOST_POWER
+                self.player.jumping = False
 
         # game over for falling
         if self.player.rect.bottom > HEIGHT:
@@ -110,11 +118,9 @@ class Game:
 
         # spawning new platforms
         while len(self.all_platforms) < 7:
-            p = Platform(random.randrange(0, WIDTH-random.randrange(50,100)),
+            Platform(self,random.randrange(0, WIDTH-random.randrange(50,100)),
                          random.randrange(-75, -30),
                         path.join(self.img_dir,GRASS_TILE),path.join(self.img_dir,STONE_TILE),self.player.now)
-            self.all_sprites.add(p)
-            self.all_platforms.add(p)
 
     def draw(self):
         self.screen.fill(GREY)

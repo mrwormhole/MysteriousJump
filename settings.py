@@ -30,3 +30,4 @@ PLATFORM_LIST = [ (0, HEIGHT-40), # base ground
                   (200, HEIGHT*1/4, 100), # 150
                   (350, HEIGHT*1/4-100), # 50
                   (200, HEIGHT*1/4-200)] # -50
+BOOST_POWER = 40
