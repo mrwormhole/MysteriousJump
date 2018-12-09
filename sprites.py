@@ -2,6 +2,7 @@ import pygame as pg
 from settings import *
 vector2 = pg.math.Vector2
 import random
+from random import choice
 from os import path
 
 
@@ -26,6 +27,7 @@ class Spritesheet:
 
 class Player(pg.sprite.Sprite):
     def __init__(self,spritesheet,game):
+        self._layer = PLAYER_LAYER
         self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self,self.groups)
         self.spritesheet = spritesheet
@@ -97,6 +99,7 @@ class Player(pg.sprite.Sprite):
 
 class Platform(pg.sprite.Sprite):
     def __init__(self, game,x, y, filename1,filename2,time):
+        self._layer = PLATFORM_LAYER
         self.groups = game.all_sprites, game.all_platforms
         pg.sprite.Sprite.__init__(self, self.groups)
         print("Time: " + str(time))
@@ -109,12 +112,13 @@ class Platform(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        if random.randrange(100) < 10:
+        if random.randrange(100) < 8:
             self.powerup = PowerUp(self.game,self)
 
 
 class PowerUp(pg.sprite.Sprite):
     def __init__(self,game,platform):
+        self._layer = POWERUP_LAYER
         self.groups = game.all_sprites, game.all_powerups
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
@@ -130,3 +134,42 @@ class PowerUp(pg.sprite.Sprite):
         if not self.game.all_platforms.has(self.platform):
             self.kill()
 
+
+class FlyingMob(pg.sprite.Sprite):
+    def __init__(self,game):
+        self._layer = MOB_LAYER
+        self.groups = game.all_sprites, game.all_mobs
+        pg.sprite.Sprite.__init__(self,self.groups)
+        self.game = game
+        self.now = 0
+        self.last_update = 0
+        self.current_frame = 0
+        self.image_idle_frame_1 = pg.transform.scale(pg.image.load(path.join(self.game.img_dir,"idle-frame-1.png")),(40,40))
+        self.image_idle_frame_2 = pg.transform.scale(pg.image.load(path.join(self.game.img_dir, "idle-frame-2.png")),(40, 40))
+        self.idle_frames = [self.image_idle_frame_1,self.image_idle_frame_2]
+        self.image_got_hit_frame = pg.transform.scale(pg.image.load(path.join(self.game.img_dir,"got-hit-frame.png")),(40,40))
+        self.image = self.image_idle_frame_1
+        self.rect = self.image.get_rect()
+        self.rect.centerx = choice([-50, WIDTH + 50])
+        self.velocityX = random.randrange(2,6)
+        if self.rect.centerx > WIDTH:
+            self.velocityX *= -1
+        self.rect.y = random.randrange(0,HEIGHT*3/4)
+        self.velocityY = 0
+        self.dy = 0.5
+
+    def update(self):
+        self.now = pg.time.get_ticks()
+        if self.now - self.last_update > 120:
+            self.last_update = self.now
+            self.current_frame = (self.current_frame + 1) % 2
+            if self.velocityX < 0:
+                self.image = pg.transform.flip(self.idle_frames[self.current_frame],False,False)
+            elif self.velocityY < 0:
+                self.image = pg.transform.flip(self.idle_frames[self.current_frame],True,False)
+
+        self.rect.x += self.velocityX
+        self.velocityY += self.dy
+        self.rect.y += self.velocityY
+        if self.velocityY > 3.5 or self.velocityY < -3.5:
+            self.dy *= -1

@@ -32,11 +32,13 @@ class Game:
         self.jump_sound = pg.mixer.Sound(path.join(self.sound_dir,JUMP_SOUND))
 
     def new(self):
-        self.all_sprites = pg.sprite.Group()
+        self.all_sprites = pg.sprite.LayeredUpdates()
         self.all_platforms = pg.sprite.Group()
         self.all_powerups = pg.sprite.Group()
+        self.all_mobs = pg.sprite.Group()
         self.player = Player(self.spritesheet,self)
         self.score = 0
+        self.mob_timer = 0
 
 
         for platform in PLATFORM_LIST:
@@ -78,6 +80,17 @@ class Game:
     def update(self):
         self.all_sprites.update()
 
+        # spawning a mob
+        now = pg.time.get_ticks()
+        if now - self.mob_timer > 4000 + random.choice([-1000,-500, 0,500,1000]):
+            self.mob_timer = now
+            FlyingMob(self)
+        # check if player hits a mob
+        mob_hits = pg.sprite.spritecollide(self.player,self.all_mobs,False)
+        if mob_hits:
+            self.playing = False
+
+
         # check if player hits a platform - only if falling
         if self.player.vel.y > 0:
             hits = pg.sprite.spritecollide(self.player, self.all_platforms, False)
@@ -94,6 +107,8 @@ class Game:
         # check if player reaches top 1/4 of the screen
         if self.player.rect.top <= HEIGHT/4:
             self.player.pos.y += max(abs(self.player.vel.y), 2)
+            for mob in self.all_mobs:
+                mob.rect.y += abs(self.player.vel.y)
             for plat in self.all_platforms:
                 plat.rect.y += abs(self.player.vel.y)
                 if plat.rect.top >= HEIGHT:
@@ -125,7 +140,7 @@ class Game:
     def draw(self):
         self.screen.fill(GREY)
         self.all_sprites.draw(self.screen)
-        self.screen.blit(self.player.image,self.player.rect)
+        # self.screen.blit(self.player.image,self.player.rect) no need for this anymore.Layers will take care
         self.draw_text(str(self.score), WIDTH/2, 5, 30, YELLOW)
         pg.display.flip()
 
