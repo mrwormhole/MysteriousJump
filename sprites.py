@@ -7,14 +7,19 @@ from os import path
 
 
 class Spritesheet:
-    def __init__(self,filename):
+    def __init__(self, filename):
         self.spritesheet = pg.image.load(filename).convert_alpha()
 
-    def get_image(self,x,y,width,height):
+    def get_image(self, x, y, width, height):
         image = pg.Surface((width,height),pg.SRCALPHA,32)
         image.blit(self.spritesheet, (0, 0), (x, y, width, height))
         image = pg.transform.scale(image,(55,52))
         return image
+
+    def get_cloud_sprites(self, img_directory):
+        return [pg.image.load(path.join(img_directory, 'cloud1.png')),
+                pg.image.load(path.join(img_directory, 'cloud2.png')),
+                pg.image.load(path.join(img_directory, 'cloud3.png'))]
 
     def fill_animation_sprites(self):
         self.all_sprites = [0,0,0,0,0,0,0,0,0,0,0,0]
@@ -29,7 +34,7 @@ class Player(pg.sprite.Sprite):
     def __init__(self,spritesheet,game):
         self._layer = PLAYER_LAYER
         self.groups = game.all_sprites
-        pg.sprite.Sprite.__init__(self,self.groups)
+        pg.sprite.Sprite.__init__(self, self.groups)
         self.spritesheet = spritesheet
         self.spritesheet.fill_animation_sprites()
         self.walking = False
@@ -61,7 +66,7 @@ class Player(pg.sprite.Sprite):
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             self.acc.y = PLAYER_ACCELERATION'''
 
-        self.acc.x += self.vel.x * PLAYER_FRICTION # F = k . N notice we dont use the mass of player here.Because we don't want too much reality
+        self.acc.x += self.vel.x * PLAYER_FRICTION # F = k . N
         self.vel += self.acc # v = at
         self.pos += self.vel + 0.5 * self.acc # x = vt + 1/2att
 
@@ -96,13 +101,32 @@ class Player(pg.sprite.Sprite):
         if not self.jumping and not self.walking:
             self.image = self.spritesheet.all_sprites[self.standing_frame]
 
+        self.mask = pg.mask.from_surface(self.image)
+
+
+class Cloud(pg.sprite.Sprite):
+    def __init__(self, game):
+        self._layer = CLOUD_LAYER
+        self.groups = game.all_sprites, game.all_clouds
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = self.game.cloud_sprites[random.randrange(0, 3)]
+        self.rect = self.image.get_rect()
+        scale = random.randrange(50, 101) / 100
+        self.image = pg.transform.scale(self.image, (int(self.rect.width * scale), int(self.rect.height * scale)))
+        self.rect.x = random.randrange(0, WIDTH-self.rect.width)
+        self.rect.y = random.randrange(-500, -50)
+
+    def update(self):
+        if self.rect.top > HEIGHT * 3:
+            self.kill()
+
 
 class Platform(pg.sprite.Sprite):
-    def __init__(self, game,x, y, filename1,filename2,time):
+    def __init__(self, game, x, y, filename1, filename2, time):
         self._layer = PLATFORM_LAYER
         self.groups = game.all_sprites, game.all_platforms
         pg.sprite.Sprite.__init__(self, self.groups)
-        print("Time: " + str(time))
         self.game = game
         self.platforms_images = [pg.image.load(filename1).convert_alpha(),pg.image.load(filename2).convert_alpha()]
         self.image = self.platforms_images[random.randint(0, 1)]
@@ -113,11 +137,11 @@ class Platform(pg.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
         if random.randrange(100) < 8:
-            self.powerup = PowerUp(self.game,self)
+            self.powerup = PowerUp(self.game, self)
 
 
 class PowerUp(pg.sprite.Sprite):
-    def __init__(self,game,platform):
+    def __init__(self, game, platform):
         self._layer = POWERUP_LAYER
         self.groups = game.all_sprites, game.all_powerups
         pg.sprite.Sprite.__init__(self, self.groups)
@@ -136,10 +160,10 @@ class PowerUp(pg.sprite.Sprite):
 
 
 class FlyingMob(pg.sprite.Sprite):
-    def __init__(self,game):
+    def __init__(self, game):
         self._layer = MOB_LAYER
         self.groups = game.all_sprites, game.all_mobs
-        pg.sprite.Sprite.__init__(self,self.groups)
+        pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.now = 0
         self.last_update = 0
@@ -150,7 +174,7 @@ class FlyingMob(pg.sprite.Sprite):
         self.image_got_hit_frame = pg.transform.scale(pg.image.load(path.join(self.game.img_dir,"got-hit-frame.png")),(40,40))
         self.image = self.image_idle_frame_1
         self.rect = self.image.get_rect()
-        self.rect.centerx = choice([-50, WIDTH + 50])
+        self.rect.centerx = choice([-100, WIDTH + 100])
         self.velocityX = random.randrange(2,6)
         if self.rect.centerx > WIDTH:
             self.velocityX *= -1
@@ -173,3 +197,7 @@ class FlyingMob(pg.sprite.Sprite):
         self.rect.y += self.velocityY
         if self.velocityY > 3.5 or self.velocityY < -3.5:
             self.dy *= -1
+        if self.rect.left > WIDTH + 150 or self.rect.right < -150:
+            self.kill()
+
+        self.mask = pg.mask.from_surface(self.image)
