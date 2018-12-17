@@ -4,8 +4,10 @@
 import pygame as pg
 import random
 from os import path
+
 from settings import *
 from sprites import *
+from cosmosTest import *
 
 
 class Game:
@@ -20,6 +22,7 @@ class Game:
         self.load_data()
 
     def load_data(self):
+        self.azure = AzureIsTheBest()
         self.dir = path.dirname(__file__)
         self.img_dir = path.join(self.dir, 'img')
         self.sound_dir = path.join(self.dir, 'sound')
@@ -43,6 +46,7 @@ class Game:
         self.player = Player(self.spritesheet,self)
         self.score = 0
         self.mob_timer = 0
+        self.input_box = InputBox(WIDTH/2 - 100, HEIGHT * 3 / 4, 140, 32,self.screen)
 
         for platform in PLATFORM_LIST:
             Platform(self,platform[0],platform[1], path.join(self.img_dir,GRASS_TILE),path.join(self.img_dir,STONE_TILE),self.player.now)
@@ -172,6 +176,17 @@ class Game:
                 if event.type == pg.KEYUP:
                     waiting = False
 
+    def wait_for_any_submit(self,inputBoxSubmitted):
+        waiting = True
+        while waiting:
+            self.clock.tick(FPS)
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    waiting = False
+                    self.running = False
+                if event.type == pg.KEYUP and inputBoxSubmitted:
+                    waiting = False
+
     def show_start_screen(self):
         pg.mixer.music.load(path.join(self.sound_dir, MENU_MUSIC))
         pg.mixer.music.play(loops=-1)
@@ -190,15 +205,61 @@ class Game:
         if self.score > self.highscore:
             self.highscore = self.score
             self.draw_text("NEW HIGHSCORE!", WIDTH/2, HEIGHT/2 + 40, 22, BLACK)
+            self.time_to_submit_to_the_database = True
             with open(path.join(self.dir, HIGHSCORE_FILE), 'r+') as f:
                 f.write(str(self.highscore))
         else:
+            self.time_to_submit_to_the_database = False
             self.draw_text("Highscore: " + str(self.highscore), WIDTH / 2, HEIGHT/2 + 40, 22, BLACK)
         self.draw_text("GAME OVER", WIDTH / 2, HEIGHT / 4, 48, WHITE)
         self.draw_text("Score: " + str(self.score), WIDTH / 2, HEIGHT / 2, 22, WHITE)
-        self.draw_text("Press any key to play again", WIDTH / 2, HEIGHT * 3 / 4, 22, WHITE)
         pg.display.flip()
-        self.wait_for_any_key()
+
+        if not self.time_to_submit_to_the_database:
+            self.draw_text("Press any key to play again", WIDTH / 2, HEIGHT * 3 / 4, 22, WHITE)
+            pg.display.flip()
+            self.wait_for_any_key()
+
+        while self.time_to_submit_to_the_database:
+            self.screen.fill(GREY)
+            self.draw_text("NEW HIGHSCORE!", WIDTH / 2, HEIGHT / 2 + 40, 22, BLACK)
+            self.draw_text("Enter your name to submit to the database", WIDTH / 2, HEIGHT / 2 + 100, 22, BLACK)
+            self.draw_text("GAME OVER", WIDTH / 2, HEIGHT / 4, 48, WHITE)
+            self.draw_text("Score: " + str(self.score), WIDTH / 2, HEIGHT / 2, 22, WHITE)
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    self.time_to_submit_to_the_database = False
+                    if self.playing == True:
+                        self.playing = False
+                    self.running = False
+
+                self.input_box.events(event)
+                self.input_box.update()
+                self.input_box.draw(self.screen)
+                pg.display.flip()
+                if self.input_box.isSubmitted:
+                    # do stuff
+                    self.azure.pushData(self.input_box.username,self.score)
+                    self.time_to_submit_to_the_database = False
+                    break
+
+        '''if self.time_to_submit_to_the_database:
+            self.draw_text("Please check console to continue", WIDTH / 2, HEIGHT * 3 / 4, 22, WHITE)
+            username = input("Please enter your name here to submit to leaderboard: ")
+            while username == "":
+                username = input("Please enter your name here to submit to leaderboard: ")
+            if username != "":
+                print("Press any key to play again")
+                self.wait_for_any_key()
+        else:
+            self.draw_text("Press any key to play again", WIDTH / 2, HEIGHT * 3 / 4, 22, WHITE)
+            self.wait_for_any_key()
+
+        #name = input("Please enter your name(OPTIONAL) here to submit to leaderboard: ")
+        #self.wait_for_any_key()
+        #if highscore is better than the last highscore we are gonna direct this guy to console to submit
+        #if not, we will ask for any key to start it over again
+        '''
 
 
 game = Game()

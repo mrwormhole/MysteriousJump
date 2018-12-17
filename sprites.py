@@ -201,3 +201,49 @@ class FlyingMob(pg.sprite.Sprite):
             self.kill()
 
         self.mask = pg.mask.from_surface(self.image)
+
+
+class InputBox:
+    def __init__(self,x,y,w,h,screen,text = ""):
+        self.rect = pg.Rect(x,y,w,h)
+        self.screen = screen
+        self.COLOR_INACTIVE = WHITE
+        self.COLOR_ACTIVE = BLACK
+        self.FONT = pg.font.Font(None,32)
+        self.color = self.COLOR_INACTIVE
+        self.text = text
+        self.text_surface = self.FONT.render(text, True, self.color)
+        self.active = False
+        self.isSubmitted = False
+        self.username = ""
+
+    def events(self,event):
+        if event.type == pg.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                self.active = not self.active
+            else:
+                self.active = False
+            self.color = self.COLOR_ACTIVE if self.active else self.COLOR_INACTIVE
+        if event.type == pg.KEYDOWN:
+            if self.active:
+                if event.key == pg.K_RETURN:
+                    print(self.text)
+                    if self.text != "":
+                        self.isSubmitted = True
+                        self.username = self.text
+                    self.text = ""
+                elif event.key == pg.K_BACKSPACE:
+                    self.text = self.text[:-1]
+                else:
+                    self.text += event.unicode
+                self.text_surface = self.FONT.render(self.text, True, self.color)
+
+    def update(self):
+        width = max(200, self.text_surface.get_width() + 10)
+        self.rect.w = width
+
+    def draw(self,screen):
+        # Blit the text.
+        screen.blit(self.text_surface, (self.rect.x + 5, self.rect.y + 5))
+        # Blit the rect.
+        pg.draw.rect(self.screen,self.color,self.rect,2)
