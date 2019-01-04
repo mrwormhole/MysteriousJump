@@ -137,9 +137,9 @@ class Platform(pg.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
         rng = random.randrange(100)
-        if rng < 8:
+        if rng < 5:
             self.powerup = PowerUp(self.game, self)
-        elif rng >= 8 and rng < 20:
+        elif rng >= 5 and rng < 20:
             self.coin = Coin(self.game,self)
 
 
