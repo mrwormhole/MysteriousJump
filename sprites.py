@@ -136,8 +136,12 @@ class Platform(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        if random.randrange(100) < 8:
+        rng = random.randrange(100)
+        if rng < 8:
             self.powerup = PowerUp(self.game, self)
+        elif rng >= 8 and rng < 20:
+            self.coin = Coin(self.game,self)
+
 
 
 class PowerUp(pg.sprite.Sprite):
@@ -148,7 +152,26 @@ class PowerUp(pg.sprite.Sprite):
         self.game = game
         self.platform = platform
         self.type = "boost"
-        self.image = pg.transform.scale(pg.image.load(path.join(self.game.img_dir,"powerup.png")),(40,40))
+        self.image = pg.transform.scale(pg.image.load(path.join(self.game.img_dir,"boost.png")),(40,40))
+        self.rect = self.image.get_rect()
+        self.rect.centerx = self.platform.rect.centerx
+        self.rect.bottom = self.platform.rect.top - 5
+
+    def update(self):
+        self.rect.bottom = self.platform.rect.top - 5
+        if not self.game.all_platforms.has(self.platform):
+            self.kill()
+
+
+class Coin(pg.sprite.Sprite):
+    def __init__(self,game,platform):
+        self.layer = POWERUP_LAYER
+        self.groups = game.all_sprites,game.all_powerups
+        pg.sprite.Sprite.__init__(self,self.groups)
+        self.game = game
+        self.platform = platform
+        self.type = "coin"
+        self.image = pg.transform.scale(pg.image.load(path.join(self.game.img_dir, "coin.png")), (40, 40))
         self.rect = self.image.get_rect()
         self.rect.centerx = self.platform.rect.centerx
         self.rect.bottom = self.platform.rect.top - 5
@@ -227,7 +250,7 @@ class InputBox:
         if event.type == pg.KEYDOWN:
             if self.active:
                 if event.key == pg.K_RETURN:
-                    print(self.text)
+                    # print(self.text)
                     if self.text != "":
                         self.isSubmitted = True
                         self.username = self.text

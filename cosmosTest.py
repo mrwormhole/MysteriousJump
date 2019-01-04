@@ -3,8 +3,8 @@ import azure.cosmos.cosmos_client as cosmos_client
 class AzureIsTheBest:
     def __init__(self):
         self.config = {
-            'ENDPOINT': 'https://test1611.documents.azure.com:443/',
-            'PRIMARYKEY': 'e01r7A2wuk41890liVEuD8VhdOmrOh7fcdhmHNPllZAi0MOD2AVzYkGi2qzKUlmKRGogKjRpMguqaukq8PmQZA==',
+            'ENDPOINT': 'WHAT-ARE-YOU-LOOKING-AT???MY CREDIT CARD??',
+            'PRIMARYKEY': 'WHAT-ARE-YOU-LOOKING-AT???MY CREDIT CARD??',
             'DATABASE': 'HighScoreDatabase',
             'CONTAINER': 'HighScoreContainer'
         }
@@ -29,18 +29,20 @@ class AzureIsTheBest:
         #print("con: " + str(self.container))
         self.container = {'id': 'HighScoreContainer', 'indexingPolicy': {'indexingMode': 'consistent', 'automatic': True, 'includedPaths': [{'path': '/*', 'indexes': [{'kind': 'Range', 'dataType': 'Number', 'precision': -1}, {'kind': 'Hash', 'dataType': 'String', 'precision': 3}]}], 'excludedPaths': []}, '_rid': '3WcMALwdAY4=', '_ts': 1545024080, '_self': 'dbs/3WcMAA==/colls/3WcMALwdAY4=/', '_etag': '"00008901-0000-0000-0000-5c1732500000"', '_docs': 'docs/', '_sprocs': 'sprocs/', '_triggers': 'triggers/', '_udfs': 'udfs/', '_conflicts': 'conflicts/'}
 
-    def getTop10(self):
+    def getTop100(self):
         options = {}
-        options['enableCrossPartitionQuery'] = True
-        options['maxItemCount'] = 10
+        options['enableCrossPartitionQuery'] = False
+        options['maxItemCount'] = 100
         query = {'query': 'SELECT * FROM server s'}
 
-        result_iterable = self.client.QueryItems(self.container['_self'], query, options)
-        for item in iter(result_iterable):
-            print(item['message'])
+        results = self.client.QueryItems(self.container['_self'], query, options)
+
+        for result in results:
+            print(result['message'])
+
 
     def pushData(self,username,highscore):
-        # ITEM ID PLAY AN IMPORTANT ROLE TO GET RID OF ERRORS.Show joker card of Azure
+        # ITEM ID PLAY AN IMPORTANT ROLE TO GET RID OF ERRORS.
         data = self.client.CreateItem(self.container['_self'], {
             "username": str(username),
             "highscore": str(highscore),
@@ -49,7 +51,7 @@ class AzureIsTheBest:
 
         # self.removeDuplicates(username) CANCELLED DUE TO SECURITY
 
-        self.getTop10()
+        self.getTop100()
 
     '''def removeDuplicates(self,username):
         #https://stackoverflow.com/questions/46878227/cosmos-db-delete-document-with-python?noredirect=1&lq=1 AT LEAST WE TRIED FRIEND

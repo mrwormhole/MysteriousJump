@@ -32,7 +32,6 @@ class Game:
             except:
                 self.highscore = 0
                 print("console error")
-            # f.close()
         self.spritesheet = Spritesheet(path.join(self.img_dir,SPRITESHEET))
         self.cloud_sprites = self.spritesheet.get_cloud_sprites(self.img_dir)
         self.jump_sound = pg.mixer.Sound(path.join(self.sound_dir,JUMP_SOUND))
@@ -136,6 +135,8 @@ class Game:
             if powerup_hit.type == "boost":
                 self.player.vel.y = -BOOST_POWER
                 self.player.jumping = False
+            elif powerup_hit.type == "coin":
+                self.score += 100
 
         # game over for falling
         if self.player.rect.bottom > HEIGHT:
@@ -242,24 +243,6 @@ class Game:
                     self.azure.pushData(self.input_box.username,self.score)
                     self.time_to_submit_to_the_database = False
                     break
-
-        '''if self.time_to_submit_to_the_database:
-            self.draw_text("Please check console to continue", WIDTH / 2, HEIGHT * 3 / 4, 22, WHITE)
-            username = input("Please enter your name here to submit to leaderboard: ")
-            while username == "":
-                username = input("Please enter your name here to submit to leaderboard: ")
-            if username != "":
-                print("Press any key to play again")
-                self.wait_for_any_key()
-        else:
-            self.draw_text("Press any key to play again", WIDTH / 2, HEIGHT * 3 / 4, 22, WHITE)
-            self.wait_for_any_key()
-
-        #name = input("Please enter your name(OPTIONAL) here to submit to leaderboard: ")
-        #self.wait_for_any_key()
-        #if highscore is better than the last highscore we are gonna direct this guy to console to submit
-        #if not, we will ask for any key to start it over again
-        '''
 
 
 game = Game()
