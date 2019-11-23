@@ -3,8 +3,8 @@ import azure.cosmos.cosmos_client as cosmos_client
 class AzureIsTheBest:
     def __init__(self):
         self.config = {
-            'ENDPOINT': 'WHAT-ARE-YOU-LOOKING-AT???MY CREDIT CARD??',
-            'PRIMARYKEY': 'WHAT-ARE-YOU-LOOKING-AT???MY CREDIT CARD??',
+            'ENDPOINT': 'https://test1611.documents.azure.com:443/',
+            'PRIMARYKEY': 'e01r7A2wuk41890liVEuD8VhdOmrOh7fcdhmHNPllZAi0MOD2AVzYkGi2qzKUlmKRGogKjRpMguqaukq8PmQZA==',
             'DATABASE': 'HighScoreDatabase',
             'CONTAINER': 'HighScoreContainer'
         }
